@@ -1,0 +1,90 @@
+#!/usr/bin/python
+# vim: set ft=python:
+
+import click
+from basketbot import create_app
+# from basketbot.datamodel.defaults import create
+from shutil import which
+import subprocess
+
+VERSION = "0.0.1"
+
+app = create_app()
+
+def print_version(ctx, param, value):
+    """ Prints the version """
+    if not value or ctx.resilient_parsing:
+        return
+    click.echo(VERSION)
+    ctx.exit()
+
+def create_database():
+    """ Creates DB from defined datamodel """
+    from basketbot import database
+    with app.app_context():
+        database.db.create_all(bind=None)
+        # Create all default values in DB
+        # create()
+        click.echo("Created database {}".format(database.db))
+
+def drop_all():
+    """ Drops all tables in DB"""
+    if click.confirm("Dropping all tables in DB. Continue?"):
+        from basketbot import database
+        with app.app_context():
+            database.db.reflect()
+            database.db.drop_all(bind=None)
+            click.echo("All tables dropped from {}".format(database.db))
+
+def get_er(outfname):
+    """ Generate ER diagram from DB """
+    with app.app_context():
+        dburi = app.config["SQLALCHEMY_DATABASE_URI"]
+        # Requires eralchemy
+        subprocess.call(["eralchemy", "-i", dburi, "-o", outfname])
+        # Try and open the generated file using feh on linux or open on osx
+        if which("feh"):
+            subprocess.call(["feh", outfname])
+        elif which("open"):
+            subprocess.call(["open", outfname])
+
+@click.group()
+def db():
+    """ Work with the database """
+    pass
+
+@click.command(name="create")
+def db_create():
+    """ Creates a blank database """
+    create_database()
+
+@click.command(name="drop")
+def db_drop():
+    """ Drops all tables """
+    drop_all()
+
+@click.command(name="er")
+@click.option("--fname", default="out.png", help="Optionally specify a filename to save er diagram to")
+def db_er(fname):
+    """ Creates an er diagram"""
+    get_er(fname)
+
+@click.group()
+@click.option(
+    '--version',
+    is_flag=True,
+    callback=print_version,
+    expose_value=False,
+    is_eager=True,
+    help="Show the version number.")
+def cli():
+    """ Tools for working with BasketBot """
+    pass
+
+if __name__ == '__main__':
+    db.add_command(db_create)
+    db.add_command(db_drop)
+    db.add_command(db_er)
+
+    cli.add_command(db)
+    cli()

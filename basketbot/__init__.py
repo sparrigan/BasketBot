@@ -23,11 +23,11 @@ def configure(app, config):
         app.template_folder = app.config["TEMPLATE_FOLDER"]
 
     # Manually override SQLA DB URI for sqlite 
-    db_path = os.path.join(Path(os.path.dirname(__file__)).parent, 'flasksip.db')
+    db_path = os.path.join(Path(os.path.dirname(__file__)).parent, 'basketbot.db')
     db_string = 'sqlite:///{}'.format(db_path)
     app.config['SQLALCHEMY_DATABASE_URI'] = db_string 
 
-def create_app(config="flasksip.config.Testing"):
+def create_app(config="basketbot.config.Testing"):
     """ Build out app and configure """
     app = Flask(__name__)
     configure(app, config)

@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     description = "Aggregating local basket prices",
     python_requires='>=3',
-    # scripts = ["scripts/fs"],
+    scripts = ["scripts/bb"],
     author = "Nic",
     author_email = "sparrigan@gmail.com",
     url = "https://github.com/sparrigan/BasketBot",
