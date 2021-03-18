@@ -1,8 +1,7 @@
 import os, uuid
 from pathlib import Path
-from flask_migrate import Migrate
 from flask import Flask
-from .database import db
+from .database import db, migrate
 
 if "XDG_CONFIG_HOME" in os.environ:
     HOME = os.getenv("XDG_CONFIG_HOME")
@@ -33,7 +32,7 @@ def create_app(config="flasksip.config.Testing"):
     app = Flask(__name__)
     configure(app, config)
     db.init_app(app)
-    migrate = Migrate(app, db)
+    migrate.init_app(app, db)
     # app.register_blueprint(frontend)
     # app.register_blueprint(api, url_prefix="/api/v1")
     # app.redis = Redis.from_url(app.config['REDIS_URL'])
