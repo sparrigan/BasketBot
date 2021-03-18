@@ -1,0 +1,10 @@
+venv
+build
+*.db
+*.egg*
+tags
+__pycache__
+*.pyc
+*.swp
+*.orig
+*.swo
