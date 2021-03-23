@@ -4,7 +4,11 @@ flask
 flask-sqlalchemy
 SQLAlchemy==1.3.23
 ERAlchemy
+flask-restx
 Flask-Migrate
-flask-bcrypt
+flask-security
+flask-marshmallow
+marshmallow-sqlalchemy
+email_validator
 pytest
 validators

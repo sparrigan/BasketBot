@@ -1,9 +1,10 @@
 from datetime import datetime as dtime, timedelta
 import pytz
 from sqlalchemy import ForeignKey, CheckConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Column, Integer, String, Text, Boolean, Float, Numeric, Date, BigInteger, Sequence, DateTime, Table, Binary, Interval
 from sqlalchemy.dialects.postgresql import JSONB, JSON
+from flask_security import UserMixin, RoleMixin
 from basketbot import db
 from basketbot.datamodel.types import SJSON
 
@@ -24,6 +25,36 @@ RegionRetailSite = Table('regions_retail_sites', Base.metadata,
 )
 
 # Relations
+
+class RolesUsers(Base):
+    __tablename__ = 'roles_users'
+    id = Column(Integer(), primary_key=True)
+    user_id = Column('user_id', Integer(), ForeignKey('user.id'))
+    role_id = Column('role_id', Integer(), ForeignKey('role.id'))
+
+class Role(Base, RoleMixin):
+    __tablename__ = 'role'
+    id = Column(Integer(), primary_key=True)
+    name = Column(String(80), unique=True)
+    description = Column(String(255))
+
+class User(Base, UserMixin):
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True)
+    email = Column(String(255), unique=True)
+    username = Column(String(255))
+    password = Column(String(255))
+    last_login_at = Column(DateTime())
+    current_login_at = Column(DateTime())
+    last_login_ip = Column(String(100))
+    current_login_ip = Column(String(100))
+    login_count = Column(Integer)
+    active = Column(Boolean())
+    confirmed_at = Column(DateTime())
+    roles = relationship('Role', secondary='roles_users',
+                         backref=backref('users', lazy='dynamic'))
+
+    scraping_rules = relationship('ScrapingRule', back_populates='user')
 
 class Country(Base):
     __tablename__ = 'country'
@@ -128,18 +159,6 @@ class ItemURL(Base):
         else:
             pass
 
-class User(Base):
-    """
-    Contains information on a User, including web-app and web-extension
-    credentials
-    """
-    __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
-    username = Column(String(100))
-    password = Column(String(60))
-
-    scraping_rules = relationship('ScrapingRule', back_populates='owner')
-
 class ScrapingRule(Base):
     """
     Contains a serialized description of a prices location in the DOM in
@@ -148,11 +167,11 @@ class ScrapingRule(Base):
     __tablename__ = 'scraping_rule'
     id = Column(Integer, primary_key=True)
     update_time = db.Column(DateTime(timezone=True), nullable=False, default=now, index=True)
-    owner = Column(Integer, ForeignKey('user.id'))
+    user_id = Column(Integer, ForeignKey('user.id'))
     parent_id = Column(Text)
     dom_chain = Column(SJSON)
 
-    owner = relationship('User', back_populates='scraping_rules')
+    user = relationship('User', back_populates='scraping_rules')
 
     def get_rule():
         """

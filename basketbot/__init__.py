@@ -2,6 +2,8 @@ import os, uuid
 from pathlib import Path
 from flask import Flask
 from .database import db, migrate
+from .marshalling import ma
+from basketbot.api import blueprint as api
 
 if "XDG_CONFIG_HOME" in os.environ:
     HOME = os.getenv("XDG_CONFIG_HOME")
@@ -33,8 +35,9 @@ def create_app(config="basketbot.config.Testing"):
     configure(app, config)
     db.init_app(app)
     migrate.init_app(app, db)
+    ma.init_app(app) # Note: important this comes after db.init_app
     # app.register_blueprint(frontend)
-    # app.register_blueprint(api, url_prefix="/api/v1")
+    app.register_blueprint(api, url_prefix="/api/v1")
     # app.redis = Redis.from_url(app.config['REDIS_URL'])
     # app.my_queue_name_here = rq.Queue('my_queue_name', connection=app.redis)
     return app
