@@ -21,6 +21,7 @@ def print_version(ctx, param, value):
 def create_database():
     """ Creates DB from defined datamodel """
     from basketbot import database
+    from basketbot.datamodel import model as dm
     with app.app_context():
         database.db.create_all(bind=None)
         # Create all default values in DB
