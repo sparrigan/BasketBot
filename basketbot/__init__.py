@@ -2,8 +2,11 @@ import os, uuid
 from pathlib import Path
 from flask import Flask
 from .database import db, migrate
+from basketbot.datamodel import register_events
 from .marshalling import ma
-from basketbot.api import blueprint as api
+from basketbot.frontend import frontend
+from basketbot.api import api
+from basketbot.api import blp
 
 if "XDG_CONFIG_HOME" in os.environ:
     HOME = os.getenv("XDG_CONFIG_HOME")
@@ -25,23 +28,23 @@ def configure(app, config):
         app.template_folder = app.config["TEMPLATE_FOLDER"]
 
     # Manually override SQLA DB URI for sqlite 
-    db_path = os.path.join(Path(os.path.dirname(__file__)).parent, 'basketbot.db')
-    db_string = 'sqlite:///{}'.format(db_path)
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_string 
+    # db_path = os.path.join(Path(os.path.dirname(__file__)).parent, 'basketbot.db')
+    # db_string = 'sqlite:///{}'.format(db_path)
+    # app.config['SQLALCHEMY_DATABASE_URI'] = db_string 
 
 def create_app(config="basketbot.config.Testing"):
     """ Build out app and configure """
     app = Flask(__name__)
     configure(app, config)
     db.init_app(app)
+    # Register any db event listeners
+    register_events(db.session) 
     migrate.init_app(app, db)
     ma.init_app(app) # Note: important this comes after db.init_app
+    api.init_app(app)
     # app.register_blueprint(frontend)
-    app.register_blueprint(api, url_prefix="/api/v1")
+    app.register_blueprint(frontend)
+    api.register_blueprint(blp)
     # app.redis = Redis.from_url(app.config['REDIS_URL'])
     # app.my_queue_name_here = rq.Queue('my_queue_name', connection=app.redis)
     return app
-
-
-
-

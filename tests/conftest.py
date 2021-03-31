@@ -1,25 +1,92 @@
-from basketbot import create_app, db
-from basketbot.datamodel import defaults
+import pytest
+from basketbot import create_app
+from basketbot.datamodel import defaults, register_events
+from pytest_postgresql.factories import DatabaseJanitor #init_postgresql_database, drop_postgresql_database
+from basketbot.datamodel import model as dm
 
-@pytest.fixture(scope="module")
-def app():
+# @pytest.fixture(scope='session')
+# def database(request, app):
+#     '''
+#     Create a Postgres database for the tests, and drop it when the tests are done.
+#     '''
+#     # Make sure that test env has had
+#     # createuser test --createdb
+#     db_conf = [app.config['DB_USER'], 
+#             app.config['DB_HOST'], 
+#             app.config['DB_PORT'], 
+#             app.config['DB_NAME']
+#             ]
+#
+#     yield init_postgresql_database(*db_conf)
+#
+#     # @request.addfinalizer
+#     # def drop_database():
+#     drop_postgresql_database(*db_conf, 13.2)
+
+@pytest.fixture(scope='session')
+def database(request):
+    '''
+    Create a Postgres database for the tests, and drop it when the tests are done.
+    '''
+    # Make sure that test env has had
+    # createuser test --createdb
+    # Note other permissions are needed to dropdb? 
+    # But can't figure out what these are. 
+    # Using a superuser role definitely works though ¯\_(ツ)_/¯ 
+    from basketbot.config import Testing
+    db_conf = [
+            Testing.DB_USER, 
+            Testing.DB_HOST, 
+            Testing.DB_PORT, 
+            Testing.DB_NAME,
+            Testing.DB_VERSION
+            ]
+    with DatabaseJanitor(*db_conf):
+        yield
+
+
+@pytest.fixture(scope="session")
+def app(database):
     """ Exposes basketbot Flask app object """
-    return create_app("basketbot.config.Testing")
+    app = create_app("basketbot.config.Testing")
+    with app.app_context():
+        yield app
 
-@pytest.fixture()
-def database(app):
-    """ Exposes the basketbot SQLAlchemy database object """
-    with db.app.app_context():
-        db.create_all()
-        defaults.create()
-        yield db
-    db.drop_all()
 
-@pytest.fixture()
-def session(database):
-    """ Return SQLAlchemy database session """
-    return database.session()
+# @pytest.fixture(scope='session')
+# def database(app):
+#     """ Exposes the basketbot SQLAlchemy database object """
+#     with app.app_context():
+#         from basketbot import db
+#         db.create_all()
+#         defaults.create()
+#         yield db
+#     # Not using this teardown as should be handled by 
+#     # pytest-flask-sqlalchemy extension
+#     # db.drop_all()
+#
 
-@pytest.fixture()
-def item_urls(database):
-    """ Return some item URLs to test on """
+# This fixture needed by pytest-flask-sqlalchemy extension
+@pytest.fixture(scope='session')
+def _db(app):
+    from basketbot import db
+    db.create_all()
+    defaults.create()
+    return db
+
+@pytest.fixture(scope='function')
+def db_with_items(db_session):
+    defaults.create_test_defaults(db_session)
+    # Register event listeners
+    register_events(db_session)
+    return db_session
+
+# @pytest.fixture()
+# def session(database):
+#     """ Return SQLAlchemy database session """
+#     return database.session()
+#
+# @pytest.fixture()
+# def item_urls(database):
+#     """ Return some item URLs to test on """
+#     pass

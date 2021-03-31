@@ -12,3 +12,14 @@ class Production(Config):
 class Testing(Config):
     TESTING = True
     CONFIG_NAME = "testing"
+    DB_HOST = "localhost"
+    DB_PORT = "5432"
+    DB_USER = "nic"
+    DB_NAME = "test"
+    DB_VERSION = 13.2
+    
+    fmtstring = "postgres://{}@{}:{}/{}"
+    db_string = fmtstring.format(DB_USER, DB_HOST, DB_PORT, DB_NAME)
+    SQLALCHEMY_DATABASE_URI = db_string 
+
+
