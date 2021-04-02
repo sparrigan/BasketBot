@@ -9,7 +9,7 @@ import subprocess
 
 VERSION = "0.0.1"
 
-app = create_app()
+app = create_app(config="basketbot.config.Production")
 
 def print_version(ctx, param, value):
     """ Prints the version """

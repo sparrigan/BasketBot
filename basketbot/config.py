@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 class Config(object):
     CONFIG_NAME = "base"
@@ -8,6 +9,11 @@ class Config(object):
 
 class Production(Config):
     CONFIG_NAME="production"
+    # Temporarily use SQLITE for dev
+    db_path = os.path.join(Path(os.path.dirname(__file__)).parent, 'basketbot.db')
+    db_string = 'sqlite:///{}'.format(db_path)
+    SQLALCHEMY_DATABASE_URI = db_string 
+
 
 class Testing(Config):
     TESTING = True
