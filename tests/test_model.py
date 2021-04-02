@@ -61,7 +61,6 @@ def test_basket_version_update_on_addition(db_with_items):
     db_with_items.delete(item)
     db_with_items.commit()
     check_region_basket_versions([region_2, region_3], all_regions, init_versions)
-    
 
 def check_region_basket_versions(updated_regions, all_regions, init_versions):
     """

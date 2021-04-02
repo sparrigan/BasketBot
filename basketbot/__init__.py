@@ -36,6 +36,7 @@ def create_app(config="basketbot.config.Testing"):
     """ Build out app and configure """
     app = Flask(__name__)
     configure(app, config)
+
     db.init_app(app)
     # Register any db event listeners
     register_events(db.session) 

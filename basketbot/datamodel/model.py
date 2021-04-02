@@ -1,7 +1,7 @@
 from datetime import datetime as dtime, timedelta
 import pytz
 from sqlalchemy import ForeignKey, CheckConstraint, event, inspect
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, mapper
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import Column, Integer, String, Text, Boolean, Float, Numeric, Date, BigInteger, Sequence, DateTime, Table, Binary, Interval
 from sqlalchemy.dialects.postgresql import JSONB, JSON
@@ -242,14 +242,22 @@ class ScrapingRule(Base):
     Scraping rules are stored as follows:
     parent_elem - stores the name of the parent element used in the scraping rule. 
     This is the starting node in the tree that will be used for scraping (the first 
-    element above the element to be scraped that has an ID. Note is a relation to 
+    element above the element to be scraped that has an ID). Note that is a relation to 
     dom_element table.
     parent_id - the string ID of the parent DOM element used to start the scrape
     class_chain - A JSON containing a list of DOM tree nodes to traverse down,
     starting from the parent element. of the form: 
-    {"<tree_level>": {"elem": "<elem_name>", "classes": ["<class_1>", "<class_2>",...]}}
+    {
+        "<tree_level>": 
+            {
+                "elem": "<elem_name>",
+                "classes": ["<class_1>", "<class_2>",...]
+            }
+    }
     Note that <tree_level> starts at 0 for nodes immediately below the parent element in 
-    the DOM tree. <elem_name> is a BS compliant element name string.
+    the DOM tree. <elem_name> is a BS compliant element name string. Class chains are 
+    validated at the app-level to ensure that elem values are strings contained in the
+    bs_name field of the dom_elem relation.
     """
     __tablename__ = 'scraping_rule'
     id = Column(Integer, primary_key=True)
@@ -281,12 +289,21 @@ class ScrapingRule(Base):
         pass
 
 # Events
+
+# This listener needs to be added here to catch the mapper config trigger
+# early enough
+from basketbot.util.db import setup_schema
+event.listen(mapper, "after_configured", setup_schema(Base, db.session))
+
 # Note that these functions are defined here, but actually registered
 # in main basketbot __init__. This encapsulation allows also registering
 # events easily on pytest stateless DB sessions
-
 def register_events(session):
     SESSION_INFO_KEY = 'altered_regions'
+
+    # Autogenerate marshmallow schemas from model
+    # from basketbot.schemas import setup_schema
+    # event.listen(mapper, "after_configured", setup_schema(base, session))
 
     @event.listens_for(session, "before_flush")
     def check_for_items(session, flush_context, instances):
@@ -338,22 +355,14 @@ def register_events(session):
         # for _ in session.new.union(session.dirty):
         #     if isinstance(_, Item):
         #         altered_regions.update(_.region)
-        # print("Dirty session")
-        # print(session.dirty)
-        # print(session)
 
-        print("Triggered before commit")
-        print(session.info)
         if len(altered_regions:=session.info.get(SESSION_INFO_KEY, set()))>0:
-            print("Inside Loop")
             for region in altered_regions:
                 region.basket_version += 1
                 # Trigger alerts for any regions with updated basket_versions
                 # could go here if there is not also an update in this commit 
                 # for their baskets
             session.add_all(altered_regions)
-            for ar in altered_regions:
-                print(ar.basket_version)
             # session.commit()
             # session.flush()
 
