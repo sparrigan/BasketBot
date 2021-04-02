@@ -295,16 +295,20 @@ def register_events(session):
         and take a note of their regions in the Session.info dict
         """
         altered_regions = set()
-        print("In flush check")
-        print(session.new.union(session.dirty))
         for _ in session.new.union(session.dirty):
             if isinstance(_, Item):
-                # Idea here is to check only for cases where the specific fields of Item have changed, to prevent recursion
                 state = inspect(_)
-                if len(state.attrs.name.history.added)>0:
+                # Flag any regions with changed item names or new items
+                # NB: state.attrs.name.histroy.added also catches new items
+                if len(state.attrs.name.history.added)>0 or len(state.attrs.regions.history.added)>0:
                     altered_regions.update(_.regions)
-        print(altered_regions)
-        print("Done in flush check")
+                # Flag any regions removed from item
+                if len(state.attrs.regions.history.deleted)>0:
+                    altered_regions.update(state.attrs.regions.history.deleted)
+        for _ in session.deleted:
+            # Flag any regions with deleted items
+            if isinstance(_, Item):
+                altered_regions.update(_.regions)
         if SESSION_INFO_KEY in session.info:
             session.info[SESSION_INFO_KEY].update(altered_regions)
         else:
