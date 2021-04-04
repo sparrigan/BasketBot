@@ -5,7 +5,8 @@ def create():
     """ Populate DB with default values """
     dom_elems = [
             dm.DOMElem(bs_name='div', js_name='DIV'),
-            dm.DOMElem(bs_name='a', js_name='A')
+            dm.DOMElem(bs_name='a', js_name='A'),
+            dm.DOMElem(bs_name='br', js_name='BR')
             ]
     db.session.add_all(dom_elems)
     db.session.commit()
@@ -43,15 +44,21 @@ def create_test_defaults(session):
     # Retail sites
     retail_site_1 = dm.RetailSite(
             name="Superstore",
-            url="http://www.superstore.com",
-            basket_base_url="http://buy.superstore.com",
+            url_domain="superstore",
+            url_subdomain="www",
+            url_suffix="com",
+            url_protocol="http",
+            basket_url="http://buy.superstore.com",
             basket_version=1,
             basket={"banana": 33.22, "apple": 44.22}
             )
     retail_site_2 = dm.RetailSite(
             name="Megastore",
-            url="http://www.megastore.com",
-            basket_base_url="http://buy.megastore.com",
+            url_domain="megastore",
+            url_subdomain="www",
+            url_suffix="com",
+            url_protocol="http",
+            basket_url="http://buy.megastore.com",
             basket_version=1,
             basket={"snapple": 33.22, "juices": 44.22}
             )

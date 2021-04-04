@@ -81,6 +81,12 @@ def db_with_items(db_session):
     register_events(db_session)
     return db_session
 
+@pytest.fixture(scope='function')
+def mocked_http_urls(requests_mock):
+    requests_mock.get('https://example_https.com', status_code=200)
+    requests_mock.get('https://example_no_https.com', status_code=404)
+    requests_mock.get('https://mail.mydomain.co.uk', status_code=200)
+
 # @pytest.fixture()
 # def session(database):
 #     """ Return SQLAlchemy database session """

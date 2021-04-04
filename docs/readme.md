@@ -53,3 +53,6 @@ Note: Currently `RetailSite` has a unique url. May need to instead have (region,
 * If roll a demo with cookie-based sessions then need to configure CSRF, as outlined [here](https://testdriven.io/blog/csrf-flask/).
 
 
+# TODO:
+
+* When checking to see whether a retail sites base url is currently in the database (and when storing them) we currently use the util at basketbot.util.scraping.get_base_url, but this returns the host including a subdomain (eg www in www.example.com). Maybe we should only include hostname (eg example.com)

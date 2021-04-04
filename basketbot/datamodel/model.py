@@ -1,13 +1,15 @@
 from datetime import datetime as dtime, timedelta
 import pytz
 from sqlalchemy import ForeignKey, CheckConstraint, event, inspect
-from sqlalchemy.orm import relationship, backref, mapper
+from sqlalchemy.orm import relationship, backref, mapper, configure_mappers
+from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import Column, Integer, String, Text, Boolean, Float, Numeric, Date, BigInteger, Sequence, DateTime, Table, Binary, Interval
 from sqlalchemy.dialects.postgresql import JSONB, JSON
 from flask_security import UserMixin, RoleMixin
 from basketbot import db
 from basketbot.datamodel.types import SJSON
+from basketbot.util import setup_schema, decompose_url
 
 # Helpers
 
@@ -16,6 +18,7 @@ def now():
     return pytz.utc.localize(dtime.utcnow())
 
 Base = db.Model
+
 
 # Association tables
 
@@ -125,17 +128,53 @@ class RetailSite(Base):
     """
     Stores information on retail web-sites, including assciated regions
     and base url information. Note that url column is the websites base url,
-    and basket_base_url is the API base for obtaining items with relevant params
+    and basket_url is the retail sites API base for obtaining items with relevant params
     """
     __tablename__ = 'retail_site'
+    # Require retail site urls to be unique wrt subdomain+domain+suffix
+    __table_args__ = (
+            UniqueConstraint(
+                'url_domain',
+                'url_subdomain',
+                'url_suffix',
+                name='_retail_site_url_uc'
+                ),
+            )
     id = Column(Integer, primary_key=True)
     name = Column(String(100), unique=True)
-    url = Column(String(20832), unique=True)
-    basket_base_url = Column(String(20832), unique=True)
+    url_protocol = Column(String(253), nullable=True)
+    url_subdomain = Column(String(253), nullable=True) # Not all URLS have a subdomain
+    url_domain = Column(String(253), nullable=False)
+    url_suffix = Column(String(253), nullable=False)
+    basket_url = Column(String(20832), nullable=True)
     basket_version = Column(Integer)
     basket = Column(SJSON)
 
     # url_params = relationship('ItemURL', back_populates='retail_site')
+
+    def add_site_url(self, url_str):
+        """
+        Short Summary
+        -------------
+        This method should be used to add a url from a string, as will decompose
+        into various components
+        """
+        rslt = decompose_url(url_str)
+        self.url_protocol = rslt['protocol']
+        self.url_subdomain = rslt['subdomain']
+        self.url_domain = rslt['domain']
+        self.url_suffix = rslt['suffix']
+
+
+    @classmethod
+    def check_site_url(cls, url_str):
+        """
+        Short Summary
+        -------------
+        Takes a URL string, extracts the base URL (if necessary)
+        and then compares for entries in DB
+        """
+        pass
 
 class Item(Base):
     __tablename__ = 'item'
@@ -288,12 +327,12 @@ class ScrapingRule(Base):
         """
         pass
 
-# Events
-
 # This listener needs to be added here to catch the mapper config trigger
 # early enough
-from basketbot.util.db import setup_schema
 event.listen(mapper, "after_configured", setup_schema(Base, db.session))
+configure_mappers() # No idea why we need to manually call this
+
+# Events
 
 # Note that these functions are defined here, but actually registered
 # in main basketbot __init__. This encapsulation allows also registering

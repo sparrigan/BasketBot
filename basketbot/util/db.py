@@ -27,5 +27,3 @@ def setup_schema(Base, session):
                 setattr(class_, "Schema", schema_class)
 
     return setup_schema_fn
-
-

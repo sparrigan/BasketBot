@@ -24,7 +24,7 @@ class Testing(Config):
     DB_NAME = "test"
     DB_VERSION = 13.2
     
-    fmtstring = "postgres://{}@{}:{}/{}"
+    fmtstring = "postgresql://{}@{}:{}/{}"
     db_string = fmtstring.format(DB_USER, DB_HOST, DB_PORT, DB_NAME)
     SQLALCHEMY_DATABASE_URI = db_string 
 

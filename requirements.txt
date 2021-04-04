@@ -13,7 +13,9 @@ flask-security
 flask-marshmallow
 marshmallow-sqlalchemy
 email_validator
+tldextract
 pytest
 pytest-postgresql
 pytest-flask-sqlalchemy
+requests-mock
 validators

@@ -34,6 +34,7 @@ def configure(app, config):
 
 def create_app(config="basketbot.config.Testing"):
     """ Build out app and configure """
+
     app = Flask(__name__)
     configure(app, config)
 
