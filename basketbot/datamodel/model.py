@@ -1,6 +1,6 @@
 from datetime import datetime as dtime, timedelta
 import pytz
-from sqlalchemy import ForeignKey, CheckConstraint, event, inspect
+from sqlalchemy import ForeignKey, CheckConstraint, event, inspect, and_
 from sqlalchemy.orm import relationship, backref, mapper, configure_mappers
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.exc import IntegrityError
@@ -174,7 +174,14 @@ class RetailSite(Base):
         Takes a URL string, extracts the base URL (if necessary)
         and then compares for entries in DB
         """
-        pass
+        rslt = decompose_url(url_str)
+        sites = cls.query.filter(and_(
+            cls.url_protocol == rslt['protocol'],
+            cls.url_subdomain == rslt['subdomain'],
+            cls.url_domain == rslt['domain'],
+            cls.url_suffix == rslt['suffix'],
+            )).all()
+        return sites
 
 class Item(Base):
     __tablename__ = 'item'

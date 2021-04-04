@@ -2,6 +2,7 @@
 Test that we can obtain required information from DB model
 """
 
+import pytest
 import validators
 from basketbot import datamodel as dm
 
@@ -87,6 +88,51 @@ def check_region_basket_versions(updated_regions, all_regions, init_versions):
         assert region.basket_version == init_versions[region.name] + 1
     for region in [r for r in all_regions if r not in updated_regions]:
         assert region.basket_version == init_versions[region.name]
+
+@pytest.mark.parametrize("url",
+        [
+            (
+                "http://www.superstore.com",
+                True
+                ), # In DB
+            (
+                "http://www.superstore.com/products/2423452345",
+                True
+                ), # In DB (with extra path)
+            (
+                "http://www.superstore.com/products/4544?ra=45@la=55",
+                True
+                ), # In DB (with extra path and params)
+            (
+                "http://www.megastore.com/products/4544?ra=45@la=55",
+                True
+                ), # In DB (another entry)
+            (
+                "http://megastore.com/products/4544?ra=45@la=55",
+                False
+                ), # (lack of) subdomain not in DB 
+            (
+                "http://www.example.com",
+                False
+                ), # Domain not in DB
+            (
+                "https://www.megastore.com/products/4544?ra=45@la=55",
+                False
+                ), # Wrong protocol
+            (
+                "https://www.superstore.co.uk/products/4544?ra=45@la=55",
+                False
+                ), # Suffix not in DB
+            ])
+def test_check_site_url(db_with_items, url):
+    """
+    Check the RegionSite class method for finding sites by url elements
+    """
+    rslt = dm.RetailSite.check_site_url(url[0])
+    if url[1]:
+        assert len(rslt) == 1 and isinstance(rslt[0], dm.RetailSite)
+    else:
+        assert len(rslt) == 0
 
 # def test_region_price(database):
 #     """
