@@ -71,7 +71,7 @@ def app(database):
 def _db(app):
     from basketbot import db
     db.create_all()
-    defaults.create()
+    defaults.create(db.session)
     return db
 
 @pytest.fixture(scope='function')
