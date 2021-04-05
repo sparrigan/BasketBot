@@ -3,7 +3,7 @@
 
 import click
 from basketbot import create_app
-# from basketbot.datamodel.defaults import create
+from basketbot.datamodel.defaults import create
 from shutil import which
 import subprocess
 
@@ -25,8 +25,15 @@ def create_database():
     with app.app_context():
         database.db.create_all(bind=None)
         # Create all default values in DB
-        # create()
+        create(database.db.session)
         click.echo("Created database {}".format(database.db))
+
+def add_test_data():
+    """ Add test data to database """
+    from basketbot import database
+    from basketbot.datamodel.defaults import create_test_defaults
+    with app.app_context():
+        create_test_defaults(database.db.session)
 
 def drop_all():
     """ Drops all tables in DB"""
@@ -59,6 +66,11 @@ def db_create():
     """ Creates a blank database """
     create_database()
 
+@click.command(name="test_data")
+def db_add_test_data():
+    """ Add test data to database """
+    add_test_data()
+
 @click.command(name="drop")
 def db_drop():
     """ Drops all tables """
@@ -86,6 +98,7 @@ if __name__ == '__main__':
     db.add_command(db_create)
     db.add_command(db_drop)
     db.add_command(db_er)
+    db.add_command(db_add_test_data)
 
     cli.add_command(db)
     cli()

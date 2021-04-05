@@ -1,15 +1,15 @@
 from basketbot import db
 from basketbot import datamodel as dm
 
-def create():
+def create(session):
     """ Populate DB with default values """
     dom_elems = [
             dm.DOMElem(bs_name='div', js_name='DIV'),
             dm.DOMElem(bs_name='a', js_name='A'),
             dm.DOMElem(bs_name='br', js_name='BR')
             ]
-    db.session.add_all(dom_elems)
-    db.session.commit()
+    session.add_all(dom_elems)
+    session.commit()
 
 def create_test_defaults(session):
     """ Populate DB with test default values """
@@ -62,6 +62,16 @@ def create_test_defaults(session):
             basket_version=1,
             basket={"snapple": 33.22, "juices": 44.22}
             )
+    retail_site_3 = dm.RetailSite(
+            name="Test site",
+            url_domain="example",
+            url_subdomain="www",
+            url_suffix="com",
+            url_protocol="http",
+            basket_url=None,
+            basket_version=1,
+            basket={"snapple": 33.22, "juices": 44.22}
+            )
     region_1.retail_sites = [retail_site_1, retail_site_2]
     # Items
     item_1 = dm.Item(
@@ -103,7 +113,7 @@ def create_test_defaults(session):
         country_1, country_2,
         region_1, region_2, region_3,
         currency_1, currency_2,
-        retail_site_1, retail_site_2,
+        retail_site_1, retail_site_2, retail_site_3,
         item_1, item_2, item_3, item_4, item_5, item_6, item_7
         ])
     session.commit()

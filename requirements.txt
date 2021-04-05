@@ -11,6 +11,7 @@ flask_smorest
 Flask-Migrate
 flask-security
 flask-marshmallow
+flask-cors
 marshmallow-sqlalchemy
 email_validator
 tldextract

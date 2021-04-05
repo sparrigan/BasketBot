@@ -38,6 +38,28 @@ Note also that a join from `Retail_store` to basket on region is used to validat
 
 Note: Currently `RetailSite` has a unique url. May need to instead have (region, url) pair as unique.
 
+#### Associating Scraping Rules with Retail Sites and Items
+
+This can probably be improved, but at the moment we have a `ScrapingRule` table that has a many-one relationship to the `RetailSite` table. i.e. a Retail Site can have many different scraping rules, but a given scraping rule is only associated with one retail site. A site can have more than one scraping rule because potentially different items on the site may have different scraping rules.
+
+`ScrapingRule` entries can also have a many-one relationship with the `Item` table. i.e. a scraping rule can only be associated with (at most) one Item, but an Item may be associated with many scraping rules (as an Item can be scraped from many different retail sites).
+
+We want to handle two possible cases.
+
+1. That there is a single scraping rule that applies to all, or multiple items on a retail site
+2. There are some items that have their own specific scraping rules for a site.
+
+We deal with this as follows:
+* There is a `default` boolean column in the `ScrapingRule` table. If this is `True` then the rule is applied to any item for a retail site that does not have a specific exclusion rule. 
+* There is a constraint on the `ScrapingRule` table such that if `default=True` then the foreign key pointing to the `Item` table must be `NULL`. NOTE THAT THIS IS CURRENTLY IMPLEMENTED AS AN ATTRIBUTEEVENT LISTENER ON THE ORM LEVEL, AND IS NOT ENFORCED BY A TRIGGER AT THE DB LEVEL.
+* `RetailSite` has a one-one foreign key called `default_rule` that points to `ScrapingRule` and identifies the global default rule for the site. This being one-one ensures that only one rule in `ScrapingRule` can ever be designated as the default sitewide rule for a given retail site.
+* `RetailSite` also has an `exclusions` relationship that keeps track of all the scraping rules in `ScrapingRule` that are specific to particular items for that site.
+* We then include a method on `RetailSite` called something like `get_sraping_rule(item_id)`, which, for a given item, looks through the exlcusion rules for that site for any that are also associated with the item of interest. If none are found then the default rule is returned.
+
+Questions:
+How do we handle ensuring that a default rule always exists for a retail site? We can't really make the `default_rule` relation on `RegionSite` `NOT NULL`, because often someone will probably create a site in the DB and then go and set a scrape rule for it. (unless we force sites to only be added through an initial scraping rule being created?) 
+
+
 ## Security
 
 # User auth

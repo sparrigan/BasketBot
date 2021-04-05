@@ -96,6 +96,10 @@ def check_region_basket_versions(updated_regions, all_regions, init_versions):
                 True
                 ), # In DB
             (
+                "http://www.example.com",
+                True
+                ), # In DB
+            (
                 "http://www.superstore.com/products/2423452345",
                 True
                 ), # In DB (with extra path)
@@ -112,7 +116,7 @@ def check_region_basket_versions(updated_regions, all_regions, init_versions):
                 False
                 ), # (lack of) subdomain not in DB 
             (
-                "http://www.example.com",
+                "http://www.crinklefunk.com",
                 False
                 ), # Domain not in DB
             (

@@ -1,6 +1,7 @@
 import os, uuid
 from pathlib import Path
 from flask import Flask
+from flask_cors import CORS
 from .database import db, migrate
 from basketbot.datamodel import register_events
 from .marshalling import ma
@@ -37,6 +38,8 @@ def create_app(config="basketbot.config.Testing"):
 
     app = Flask(__name__)
     configure(app, config)
+    # Enable CORS for all api endpoints from browser extensions
+    cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     db.init_app(app)
     # Register any db event listeners
@@ -49,4 +52,5 @@ def create_app(config="basketbot.config.Testing"):
     api.register_blueprint(blp)
     # app.redis = Redis.from_url(app.config['REDIS_URL'])
     # app.my_queue_name_here = rq.Queue('my_queue_name', connection=app.redis)
+
     return app

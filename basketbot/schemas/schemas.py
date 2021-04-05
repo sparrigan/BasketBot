@@ -30,7 +30,7 @@ def validate_class_chain(check):
     if sum(len(x) for x in check_values)>0:
         raise ValidationError(f"Failed to validate ClassChain contents with following errors: {check_values}")
 
-class ClassChainElem(Schema):
+class ClassChainElem(ma.Schema):
     elem = fields.Str(validate=validate_dom_elem)
     classes = fields.List(fields.Str())
 
@@ -42,8 +42,8 @@ class ScrapingRule(ma.SQLAlchemyAutoSchema):
     parent_elem = fields.Str(validate=validate_dom_elem)
     class_chain = fields.Raw(validate=validate_class_chain)
 
-class SiteURL(Schema):
-    base_url = fields.URL()
+class SiteURL(ma.Schema):
+    url = ma.Str()
 
 class TestSchema(ma.Schema):
     val = ma.Int()

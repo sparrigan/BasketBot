@@ -41,6 +41,12 @@ class RolesUsers(Base):
     user_id = Column('user_id', Integer(), ForeignKey('user.id'))
     role_id = Column('role_id', Integer(), ForeignKey('role.id'))
 
+# Scraping Rules <-> Items (for non-default scraping rules)
+ScrapingRuleItem = Table('scraping_rule_item', Base.metadata,
+        Column('scraping_rule_id', Integer, ForeignKey('scraping_rule.id')),
+        Column('item_id', Integer, ForeignKey('item.id'))
+        )
+
 # Relations
 
 class Role(Base, RoleMixin):
@@ -306,15 +312,26 @@ class ScrapingRule(Base):
     bs_name field of the dom_elem relation.
     """
     __tablename__ = 'scraping_rule'
+    # __table_args__ = (
+    #         # Require that if scraping rule is a default then it has no item relations
+    #         CheckConstraint('NOT(default=1 AND parent_elem_id!=1)'), 
+    #         )
     id = Column(Integer, primary_key=True)
     update_time = db.Column(DateTime(timezone=True), nullable=False, default=now, index=True)
     user_id = Column(Integer, ForeignKey('user.id'))
-    parent_elem_id = Column(Integer, ForeignKey('dom_elem.id'))
+    default_rule = Column(Boolean, default=False, nullable=False)
+    parent_elem_id = Column(Integer, ForeignKey('dom_elem.id'), nullable=False)
     parent_id = Column(Text)
-    class_chain = Column(SJSON)
+    class_chain = Column(SJSON, nullable=False)
 
     parent_elem = relationship('DOMElem')
     user = relationship('User', back_populates='scraping_rules')
+    items = relationship(
+            'Item', 
+            secondary=ScrapingRuleItem,
+            backref='scraping_rules'
+            )
+
 
     @classmethod
     def create_rule():
@@ -334,6 +351,7 @@ class ScrapingRule(Base):
         """
         pass
 
+
 # This listener needs to be added here to catch the mapper config trigger
 # early enough
 event.listen(mapper, "after_configured", setup_schema(Base, db.session))
@@ -351,8 +369,25 @@ def register_events(session):
     # from basketbot.schemas import setup_schema
     # event.listen(mapper, "after_configured", setup_schema(base, session))
 
-    @event.listens_for(session, "before_flush")
-    def check_for_items(session, flush_context, instances):
+    @event.listens_for(ScrapingRule, "before_insert")
+    @event.listens_for(ScrapingRule, "before_update")
+    def check_scraping_rule_for_default(mapper, connection, target):
+        """
+        Ensure that a ScrapingRule with default=True is not associated with any specific items
+        """
+        if target.default_rule and len(target.items)>0:
+            raise IntegrityError("Scraping Rule cannot be set as default_rule for a retail site and also be related to specific items", None, None)
+        if (not target.default_rule) and len(target.items)==0:
+            raise IntegrityError("A non-default_rule Scraping Rule must be related to at least one item", None, None)
+    # We should really also do a check for when Items are inserted too in case one is associated with
+    # a scraping rule from the other side
+
+    # Changed this from before_flush to after_flush as could not resolve some
+    # relations in before_flush (no autocommit?)
+    # @event.listens_for(session, "before_flush")
+    # def check_for_items(session, flush_context, instance):
+    @event.listens_for(session, "after_flush")
+    def check_for_items(session, flush_context):
         """
         Detect whether any items have been altered or addded during a flush
         and take a note of their regions in the Session.info dict
