@@ -6,9 +6,10 @@ from flask import jsonify, request
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from flask_cors import cross_origin
+from basketbot import db
 from basketbot.api import api
 from basketbot.datamodel import model as dm
-from basketbot.schemas import SiteURL
+from basketbot.schemas import SiteURL, ExtensionScrapingRule, IDArgs
 # from flask_restx import Resource, Namespace
 
 # ns_ext = Namespace(
@@ -30,44 +31,28 @@ class CheckSite(MethodView):
     @blp.response(200, dm.RetailSite.Schema())
     def post(self, data):
         url = data['url']
-        site = dm.RetailSite.check_site_url(url)
-        if len(site)==0:
+        site = dm.RetailSite.get_site_from_url(url)
+        if site is None:
             abort(404, 'No retail site associated with URL found in BasketBot')
-        elif len(site)>1:
-            abort(500, 'Multiple retail sites found in BasketBot associated with URL')
+        # elif len(site)>1:
+            # abort(500, 'Multiple retail sites found in BasketBot associated with URL')
         else:
-            return site[0]
+            return site
 
-@blp.route('/scraperule', methods=['GET', 'OPTIONS'])
-class Scrape(MethodView):
-    # @blp.arguments(TestSchema, location='query')
-    # @blp.response(200, TestSchema(many=True))
-    def get(self):
-
+# TODO: Add user validation through oauth
+@blp.route('/scrapingrule', methods=['GET', 'POST', 'OPTIONS'])
+class ScrapingRule(MethodView):
+    @blp.arguments(IDArgs, location='query')
+    @blp.response(200, dm.ScrapingRule.Schema())
+    def get(self, args):
         """
-        Just a test
+        Get a scraping rule by ID
         """
-        # 1. Validation of input using marshmallow schema
+        return dm.ScrapingRule.query.get(args.get('id'))
 
-        # 2. Then validate entries of class_chain JSON from DOMElem entries
-        
-        # 3. Create ScrapingRule entry
-
-        # 4. Return 200
-
-        # 5. Add user validation through oauth
-
-
-        response = jsonify({"out": "working"})
-        # response.headers.add('Access-Control-Allow-Origin', '*')
-        # response.headers.add("Access-Control-Allow-Credentials", "true")
-        # response.headers.add("Access-Control-Allow-Methods", "OPTIONS, GET, POST")
-        # response.headers.add("Access-Control-Allow-Headers", "Content-Type, Depth, User-Agent, X-File-Size, X-Requested-With, If-Modified-Since, X-File-Name, Cache-Control")
-        # from time import sleep
-        # sleep(1)
-        return response
-
-    # @blp.arguments(dm.ScrapingRule.Schema(exclude=["update_time", "id", "user_id"]))
-    # def post(self):
-    #     pass
-
+    @blp.arguments(ExtensionScrapingRule, location='json')
+    @blp.response(200, dm.ScrapingRule.Schema())
+    def post(self, data):
+        db.session.add(data)
+        db.session.commit()
+        return data

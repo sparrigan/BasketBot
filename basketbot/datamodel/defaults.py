@@ -6,7 +6,11 @@ def create(session):
     dom_elems = [
             dm.DOMElem(bs_name='div', js_name='DIV'),
             dm.DOMElem(bs_name='a', js_name='A'),
-            dm.DOMElem(bs_name='br', js_name='BR')
+            dm.DOMElem(bs_name='br', js_name='BR'),
+            dm.DOMElem(bs_name='p', js_name='P'),
+            dm.DOMElem(bs_name='html', js_name='HTML'),
+            dm.DOMElem(bs_name='body', js_name='BODY'),
+            dm.DOMElem(bs_name='#text', js_name='#text')
             ]
     session.add_all(dom_elems)
     session.commit()
@@ -65,14 +69,14 @@ def create_test_defaults(session):
     retail_site_3 = dm.RetailSite(
             name="Test site",
             url_domain="example",
-            url_subdomain="www",
+            url_subdomain=None,
             url_suffix="com",
             url_protocol="http",
             basket_url=None,
             basket_version=1,
             basket={"snapple": 33.22, "juices": 44.22}
             )
-    region_1.retail_sites = [retail_site_1, retail_site_2]
+    region_1.retail_sites = [retail_site_1, retail_site_2, retail_site_3]
     # Items
     item_1 = dm.Item(
             name="apple",

@@ -218,9 +218,21 @@ class RetailSite(Base):
         self.url_domain = rslt['domain']
         self.url_suffix = rslt['suffix']
 
+    def get_site_url(self):
+        """
+        Short Summary
+        -------------
+        Extract a constructed site URL from stored URI elements
+        """
+        return ( 
+                f'{self.url_protocol + "://" if self.url_protocol else ""}'
+                f'{self.url_subdomain + "." if self.url_subdomain else ""}'
+                f'{self.url_domain}'
+                f'{"."+self.url_suffix if self.url_suffix else ""}'
+                )
 
     @classmethod
-    def check_site_url(cls, url_str):
+    def get_site_from_url(cls, url_str):
         """
         Short Summary
         -------------
@@ -234,7 +246,12 @@ class RetailSite(Base):
             cls.url_domain == rslt['domain'],
             cls.url_suffix == rslt['suffix'],
             )).all()
-        return sites
+        if len(sites)==0:
+            return None
+        elif len(sites)>1:
+            raise IntegrityError('More than one site found with specified URL')
+        else:
+            return sites[0]
 
 class Item(Base):
     __tablename__ = 'item'
@@ -380,7 +397,6 @@ class ScrapingRule(Base):
             secondary=ScrapingRuleItem,
             backref='scraping_rules'
             )
-
 
     @classmethod
     def create_rule():
