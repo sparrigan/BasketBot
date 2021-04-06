@@ -2,6 +2,7 @@ import os, uuid
 from pathlib import Path
 from flask import Flask
 from flask_cors import CORS
+from .exceptions import *
 from .database import db, migrate
 from basketbot.datamodel import register_events
 from .marshalling import ma

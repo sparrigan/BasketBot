@@ -1,0 +1,2 @@
+class DefaultRuleNotUnique(Exception):
+    pass

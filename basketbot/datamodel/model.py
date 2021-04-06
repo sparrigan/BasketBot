@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import Column, Integer, String, Text, Boolean, Float, Numeric, Date, BigInteger, Sequence, DateTime, Table, Binary, Interval
 from sqlalchemy.dialects.postgresql import JSONB, JSON
 from flask_security import UserMixin, RoleMixin
-from basketbot import db
+from basketbot import db, DefaultRuleNotUnique
 from basketbot.datamodel.types import SJSON
 from basketbot.util import setup_schema, decompose_url
 
@@ -155,6 +155,53 @@ class RetailSite(Base):
     basket_url = Column(String(20832), nullable=True)
     basket_version = Column(Integer)
     basket = Column(SJSON)
+
+    scraping_rules = relationship('ScrapingRule', back_populates='retail_site')
+
+    @property
+    def default_rule(self):
+        """
+        Short Summary
+        -------------
+        Get the default scraping rule associated with this retail website 
+        """
+        rule = [rule for rule in self.scraping_rules if rule.default_rule] 
+        if len(rule)==0:
+            raise DefaultRuleNotUnique(f'Retail site {self.id} does not have an associated default scraping rule')
+        elif len(rule)>1:
+            raise DefaultRuleNotUnique(f'Retail site {self.id} is associated with more than one default scraping rule')
+        else:
+            return rule[0]
+
+    @property
+    def exception_rules(self):
+        """
+        Short Summary
+        -------------
+        Get scraping rules associated with specific items for this site
+        (i.e. all non-default rules)
+        """
+        return [rule for rule in self.scraping_rules if not rule.default_rule] 
+
+    def get_item_rule(self, item):
+        """
+        Short Summary
+        -------------
+        Get scraping rule for a particular item for this retail site
+
+        Extended Summary
+        ----------------
+        When passed a basketbot.datamodel.Item ORM object, or integer Item ID, 
+        find the scraping rule for this object. If there is a specific 
+        exception rule for this item then this is returned. If not then
+        the default rule is returned. If neither is available then an error
+        is thrown
+        """
+        # Get the item ID
+        item_id = item if isinstance(item, int) else item.id
+        # Should really be doing all this DB side
+        exception_rule = [r for r in self.exception_rules if item_id in map(lambda x: x.id, r.items)]
+        return exception_rule[0] if len(exception_rule)==1 else self.default_rule
 
     # url_params = relationship('ItemURL', back_populates='retail_site')
 
@@ -319,6 +366,7 @@ class ScrapingRule(Base):
     id = Column(Integer, primary_key=True)
     update_time = db.Column(DateTime(timezone=True), nullable=False, default=now, index=True)
     user_id = Column(Integer, ForeignKey('user.id'))
+    retail_site_id = Column(Integer, ForeignKey('retail_site.id'), nullable=False)
     default_rule = Column(Boolean, default=False, nullable=False)
     parent_elem_id = Column(Integer, ForeignKey('dom_elem.id'), nullable=False)
     parent_id = Column(Text)
@@ -326,6 +374,7 @@ class ScrapingRule(Base):
 
     parent_elem = relationship('DOMElem')
     user = relationship('User', back_populates='scraping_rules')
+    retail_site = relationship('RetailSite', back_populates='scraping_rules')
     items = relationship(
             'Item', 
             secondary=ScrapingRuleItem,

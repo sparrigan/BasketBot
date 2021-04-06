@@ -49,15 +49,24 @@ We want to handle two possible cases.
 1. That there is a single scraping rule that applies to all, or multiple items on a retail site
 2. There are some items that have their own specific scraping rules for a site.
 
+Correspondingly there are two kinds of scraping rule that might be associated with a retail site - a default one, and also 'exceptions' that apply for specific items, which should be used with higher precedence than the default scraping rule.
+
 We deal with this as follows:
 * There is a `default` boolean column in the `ScrapingRule` table. If this is `True` then the rule is applied to any item for a retail site that does not have a specific exclusion rule. 
-* There is a constraint on the `ScrapingRule` table such that if `default=True` then the foreign key pointing to the `Item` table must be `NULL`. NOTE THAT THIS IS CURRENTLY IMPLEMENTED AS AN ATTRIBUTEEVENT LISTENER ON THE ORM LEVEL, AND IS NOT ENFORCED BY A TRIGGER AT THE DB LEVEL.
-* `RetailSite` has a one-one foreign key called `default_rule` that points to `ScrapingRule` and identifies the global default rule for the site. This being one-one ensures that only one rule in `ScrapingRule` can ever be designated as the default sitewide rule for a given retail site.
-* `RetailSite` also has an `exclusions` relationship that keeps track of all the scraping rules in `ScrapingRule` that are specific to particular items for that site.
-* We then include a method on `RetailSite` called something like `get_sraping_rule(item_id)`, which, for a given item, looks through the exlcusion rules for that site for any that are also associated with the item of interest. If none are found then the default rule is returned.
+* There is a constraint on the `ScrapingRule` table such that if `default=True` then there must not be any items in the rules many-many item relationship.
+* `RetailSite` has a one-many relationship with `ScrapingRule` called `scraping_rules` that keeps track of all scraping rules associated with that retail site (whether they be the default rule or the exception rules).
+* The `RetailSite` ORM object exposes two properties - `default_rule` and `exceptions`. These each access the `scraping_rules` relation and filter out all but the default rule or expections respectively.
+* A method on `RetailSite` called `get_item_rule(item_id)`, can be passed an items ID (or just a plain ORM `Item` object) and will use the above two properties to either return the specific exception rule for that item for this retail site, or - if no exception is found for this item - will return the default scraping rule for the retail site.
 
-Questions:
-How do we handle ensuring that a default rule always exists for a retail site? We can't really make the `default_rule` relation on `RegionSite` `NOT NULL`, because often someone will probably create a site in the DB and then go and set a scrape rule for it. (unless we force sites to only be added through an initial scraping rule being created?) 
+Important points of note/future work:
+
+1. A lot of the above logic would be a lot nicer as DB triggers and SQL queries, rather than ORM logic.
+
+2. Note that we do not currently have a way of ensuring that a default rule always exists for a retail site. We can't really make the `default_rule` relation on `RegionSite` `NOT NULL`, because often someone will probably create a site in the DB and then go and set a scrape rule for it. It would however be nice to ensure this integrity.
+
+3. Currently we do not have any constraint to ensure that the items that a `ScrapingRule` lists in it's exclusion are from the same `Region` as the `RetailSite` that the `ScrapingRule` is associated with. A `ScrapingRule` should never be referring to `Items` that its `RetailStore` can't have in its basket. We should maybe enforce this
+
+4. If an Item is removed from a region, then along with the various `basket_version` updates we do on event listeners, we should probably also somehow remove or at least flag `ScrapingRules` that apply only to those items in a region that they are no longer associated with (so long as they are not associated with any other items that are still valid in the region of the retail store that the scraping rule applies to). 
 
 
 ## Security
