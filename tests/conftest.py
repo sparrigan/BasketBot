@@ -1,8 +1,12 @@
 import pytest
+import json
+from pathlib import Path
 from basketbot import create_app
 from basketbot.datamodel import defaults, register_events
 from pytest_postgresql.factories import DatabaseJanitor #init_postgresql_database, drop_postgresql_database
 from basketbot.datamodel import model as dm
+
+TEST_DATA_DIR = Path(__file__).resolve().parent / 'data'
 
 # @pytest.fixture(scope='session')
 # def database(request, app):
@@ -22,6 +26,8 @@ from basketbot.datamodel import model as dm
 #     # @request.addfinalizer
 #     # def drop_database():
 #     drop_postgresql_database(*db_conf, 13.2)
+
+# Fixtures
 
 @pytest.fixture(scope='session')
 def database(request):
@@ -87,12 +93,15 @@ def mocked_http_urls(requests_mock):
     requests_mock.get('https://example_no_https.com', status_code=404)
     requests_mock.get('https://mail.mydomain.co.uk', status_code=200)
 
-# @pytest.fixture()
-# def session(database):
-#     """ Return SQLAlchemy database session """
-#     return database.session()
-#
-# @pytest.fixture()
-# def item_urls(database):
-#     """ Return some item URLs to test on """
-#     pass
+# Hooks
+
+def pytest_generate_tests(metafunc):
+    # Parametrize tests of scraping rule schema
+    if "scraping_rule_schema_data" in metafunc.fixturenames:
+        data = []
+        with open(TEST_DATA_DIR / 'scraping_rule_schema_test_data.json', 'r') as file:
+            for line in file:
+                if line.strip(" ")[0:2]!='//': # Ignore comments
+                    data.append(json.loads(line))
+        metafunc.parametrize("scraping_rule_schema_data", data)
+

@@ -5,6 +5,7 @@ def create(session):
     """ Populate DB with default values """
     dom_elems = [
             dm.DOMElem(bs_name='div', js_name='DIV'),
+            dm.DOMElem(bs_name='br', js_name='BR'),
             dm.DOMElem(bs_name='a', js_name='A'),
             dm.DOMElem(bs_name='br', js_name='BR'),
             dm.DOMElem(bs_name='p', js_name='P'),

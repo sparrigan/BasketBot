@@ -87,7 +87,7 @@ def test_retail_site_scraping_attributes(db_with_items):
                 True
                 ), # In DB
             (
-                "http://www.example.com",
+                "http://example.com",
                 True
                 ), # In DB
             (
@@ -119,14 +119,14 @@ def test_retail_site_scraping_attributes(db_with_items):
                 False
                 ), # Suffix not in DB
             ])
-def test_check_site_url(db_with_items, url):
+def test_get_site_from_url(db_with_items, url):
     """
     Check the RetailSite class method for finding sites by url elements
     """
-    rslt = dm.RetailSite.check_site_url(url[0])
+    rslt = dm.RetailSite.get_site_from_url(url[0])
     if url[1]:
-        assert len(rslt) == 1 and isinstance(rslt[0], dm.RetailSite)
+        assert isinstance(rslt, dm.RetailSite)
     else:
-        assert len(rslt) == 0
+        assert rslt is None
 
 
