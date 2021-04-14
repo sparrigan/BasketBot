@@ -1,9 +1,10 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from marshmallow import Schema, fields, ValidationError
+from marshmallow import Schema, fields, ValidationError, validates_schema
 from marshmallow.validate import Range
+import requests
 from basketbot import ma
 from basketbot.datamodel import model as dm
-from basketbot import InvalidDOMElem, InvalidClassChain, InvalidRetailSiteURL
+from basketbot import InvalidDOMElem, InvalidClassChain, InvalidRetailSiteURL, InvalidURL
 
 # Validators
 
@@ -116,8 +117,68 @@ class ExtensionScrapingRule(ma.SQLAlchemyAutoSchema):
         else:
             raise InvalidDOMElem('DOM element not found from JavaScript tag name')
 
+class FormRegion(ma.SQLAlchemySchema):
+    class Meta:
+        model = dm.Region
+        load_instance = True
+        include_relationships = True
+    id = ma.auto_field(data_key="region_id")
+    name = ma.auto_field() 
+
+class CountryRegions(ma.SQLAlchemySchema):
+    class Meta:
+        model = dm.Country
+        load_instance = True
+        include_relationships = True
+    id = ma.auto_field(data_key="country_id")
+    name = ma.auto_field() 
+    regions = fields.Nested(FormRegion, many=True)
+
+class CountryRegionsDict(ma.SQLAlchemySchema):
+    class Meta:
+        model = dm.Country
+        load_instance = True
+        include_relationships = True
+    id = ma.auto_field(data_key="country_id")
+    name = ma.auto_field() 
+    regions = fields.Nested(FormRegion, many=True)
+
 class SiteURL(ma.Schema):
     url = ma.Str()
+
+class DeconstructedURL(ma.Schema):
+    subdomain = ma.Str()
+    domain = ma.Str()
+    suffix = ma.Str()
+    protocol = ma.Str()
+
+    @validates_schema
+    def validate_url(self, data, **kwargs):
+        url = f"{data.get('protocol')+'://' if data.get('protocol') else ''}"\
+        f"{data.get('subdomain')+'.' if data.get('subdomain') else ''}"\
+        f"{data.get('domain')}."\
+        f"{data.get('suffix')}"
+        try:
+            response = requests.head(url)
+        except requests.exceptions.ConnectionError:
+            return False
+        if not response.ok:
+            return False
+        return True
+
+
+class RetailSiteRegionIDs(ma.SQLAlchemySchema):
+    class Meta:
+        model = dm.RetailSite
+        load_instance = True
+        include_relationships = False
+    id = ma.auto_field()
+    name = ma.auto_field()
+    url_protocol = ma.auto_field()
+    url_subdomain = ma.auto_field()
+    url_domain = ma.auto_field()
+    url_suffix = ma.auto_field()
+    regions = fields.List(fields.Pluck(dm.Region.Schema(), "id"))
 
 # class ExtensionScrapingRule(ma.Schema):
 #     retail_site_id

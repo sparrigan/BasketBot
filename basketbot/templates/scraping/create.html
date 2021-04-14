@@ -1,0 +1,9 @@
+{% extends 'basketbot.html' %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-12">
+            {{ macros.render_form(form, "New scraping rule", submit_txt="Submit", endpoint=url_for("frontend.scraping_rule_create")) }}
+        </div>
+    </div>
+{% endblock %}

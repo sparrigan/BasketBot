@@ -1,0 +1,28 @@
+{% import 'macros.html' as macros %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{{url_for("static", filename="css/bootstrap.min.css")}}">
+        <link rel="stylesheet" href="{{url_for("static", filename="css/custom.css")}}">
+    </head>
+    <title>
+        BasketBot
+    </title>
+    <body>
+        <script src="{{url_for("static", filename="js/bootstrap.bundle.min.js")}}"></script>
+        <script src="{{url_for("static", filename="js/jquery-3.6.0.min.js")}}"></script>
+        <div id="wrapper">
+            <main role="main">
+                <div id="page-content-wrapper">
+                    <div class="page-content">
+                        <div class="container-fluid">
+                            {% block body %}
+                            {% endblock %}
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </body>
+</html>

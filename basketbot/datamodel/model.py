@@ -80,6 +80,13 @@ class Country(Base):
 
     regions = relationship('Region', back_populates='country')
 
+   # @classmethod
+    # def get_country_region_dict(cls):
+    #     """
+    #     Return a dict where keys are country names and values
+    #     are lists of all regions in that country
+    #     """
+    #
 class Currency(Base):
     __tablename__ = 'currency'
     id = Column(Integer, primary_key=True)

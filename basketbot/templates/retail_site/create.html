@@ -1,0 +1,93 @@
+{% extends 'basketbot.html' %}
+
+{% block body %}
+<script>
+    var countryRegions = {{ country_region_dict|tojson }};
+</script>
+<script src="{{url_for("static", filename="js/create_retail_site.js")}}"></script>
+<div class="row">
+    <div class="col-12">
+        <div class="py-5 text-left">
+            <h2>{{ form.title }}</h2>
+            <p class="lead">
+                The site you chose a scraping rule for is not currently in the BasketBot database. To proceed, first add the site to BaksetBot using the below form. For more information click <a href="#">here</a>.
+            </p>
+        </div>
+        <div class="card border-dark mb-3">
+            <div class="card-header">
+                <h5>{{ form.short_title }}</h5>
+            </div>
+            <div class="card-body text-dark">
+                <form id="upload-form" method="POST" enctype="multipart/form-data" action="{{endpoint}}">
+                    <fieldset>
+                        {% for field in form %}
+                            {% if field.type in ['CSRFTokenField', 'HiddenField'] %}
+                                {{ field() }}
+                            {% endif %}
+                        {% endfor %}
+                        <div class="form-group row">
+                            <div class="form-group col-md-6">
+                                {{ form.name.label }}
+                                {{ form.name(class_='form-control', id='name-input') }}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="form-group col-md-6">
+                                {{ form.countries.label }}
+                                {{ form.countries(class_='form-control', id='site-country-options') }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                {{ form.regions.label }}
+                                {{ form.regions(class_='form-control', id='site-region-options') }}
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="form-group col-sm-3">
+                                {{ form.url_protocol.label }}
+                                {{ form.url_protocol(class_='form-control', id='protocol-input', value=durl.get('protocol', '')) }}
+                            </div>
+                            <div class="form-group col-sm-3">
+                                {{ form.url_subdomain.label }}
+                                {{ form.url_subdomain(class_='form-control', id='subdomain-input', value=durl.get('subdomain','')) }}
+                            </div>
+                            <div class="form-group col-sm-3">
+                                {{ form.url_domain.label }}
+                                {{ form.url_domain(class_='form-control', id='domain-input', value=durl.get('domain','')) }}
+                            </div>
+                            <div class="form-group col-sm-3">
+                                {{ form.url_suffix.label }}
+                                {{ form.url_suffix(class_='form-control', id='suffix-input', value=durl.get('suffix','')) }}
+                            </div>
+                        </div>
+                        {% for field in form %}
+                            {% if field.errors or field.help_text %}
+                                <span class="help-inline">
+                                    {% if field.errors %}
+                                      {{ field.errors|join(' ') }}
+                                    {% else %}
+                                      {{ field.help_text }}
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                    <div class="card-footer bg-transparent border-dark">
+                        <div class="float-right">
+                          <button type="submit" 
+                              class="btn btn-dark" 
+                              id="submit-button"
+                              style="float: right;">
+                                Submit
+                          </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<div id="test-button">
+    Test button
+</div>
+{% endblock %}

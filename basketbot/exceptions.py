@@ -17,6 +17,11 @@ class InvalidDOMElem(Exception):
     def __init__(self, msg='DOM element is not recognised', *args, **kwargs):
         super().__init__(msg, *args, **kwargs)
 
+class InvalidURL(Exception):
+    def __init__(self, msg='URL could not be resolved to a valid website', *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+
 # Build enum of all our custom errors (warning: brittle)
 all_classes = inspect.getmembers(sys.modules[__name__], inspect.isclass)
 BasketBotErrors = Enum(

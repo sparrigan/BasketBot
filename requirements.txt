@@ -20,3 +20,6 @@ pytest-postgresql
 pytest-flask-sqlalchemy
 requests-mock
 validators
+wtforms
+Flask-WTF
+wtforms-alchemy

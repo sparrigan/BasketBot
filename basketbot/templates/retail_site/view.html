@@ -1,0 +1,8 @@
+{% extends 'basketbot.html' %}
+
+{% block body %}
+<h1>Created retail site</h1>
+id: {{retail_site.id}}
+name: {{retail_site.name}}
+url: {{retail_site.get_site_url()}}
+{% endblock %}
