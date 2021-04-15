@@ -28,13 +28,3 @@ def get_form():
     else:
         form = ScrapingRuleForm()
         return render_template('scraping/create.html', form=form)
-
-
-# def create():
-#     form = ScrapingRuleForm() 
-#     if form.validate_on_submit():
-#         return "ok"
-#     return render_template(
-#             'scraping/create.html',
-#             form=form
-#             )
