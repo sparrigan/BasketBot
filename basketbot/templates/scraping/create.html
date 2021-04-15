@@ -2,6 +2,13 @@
 
 {% block body %}
 
+    <div class="py-5 text-left">
+        <h2>{{ form.title }}</h2>
+        <p class="lead">
+            Check the details for your scraping rule below, make any necessary changes and then click to submit to the basketbot DB.
+        </p>
+    </div>
+
     <div class="row">
         <div class="col-12">
             {{ macros.render_form(form, "New scraping rule", submit_txt="Submit", endpoint=endpoint) }}

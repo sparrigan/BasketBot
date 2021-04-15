@@ -4,7 +4,6 @@ from basketbot import db
 from basketbot.datamodel import model as dm
 from basketbot.forms import RetailSiteForm, ScrapingRuleForm
 
-
 def create():
     form = RetailSiteForm(csrf_enabled=False)
     if form.validate_on_submit():
@@ -31,9 +30,10 @@ def create():
                     )
         else:
             # Redirect to retail-site creation success page
-            return redirect('http://www.yahoo.com')
-        # return redirect('http://www.google.com')
-    return redirect('http://www.google.com')
+            # return redirect(url_for('view_form', id=rs.id))
+            pass
+    # Proper error handling here eventually
+    abort(500)
         # return redirect(url_for('frontend.create_scraping_rule'))
 
 # def create():

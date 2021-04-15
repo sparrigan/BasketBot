@@ -24,6 +24,8 @@ def get_default_dom_elem():
     return [get_dom_elem().first()]
 
 class ScrapingRuleForm(FlaskForm):
+    title = "Create a Scraping Rule in basketbot"
+    short_title = "Create Scraping Rule"
     retail_site = QuerySelectMultipleField('Retail Site', query_factory=get_retail_site, get_label=get_retail_site_label, default=get_default_retail_site)
     parent_elem = QuerySelectField('Parent element type', query_factory=get_dom_elem, get_label='bs_name', default=get_default_dom_elem)
     parent_id = fields.StringField('Parent ID')
