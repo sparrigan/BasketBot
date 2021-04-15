@@ -1,4 +1,4 @@
-from flask_smorest import Api
+from flask_smorest import Api, Blueprint
 import basketbot.datamodel.swagger as dm_swagger
 from basketbot.datamodel.swagger import definitions
 
@@ -13,6 +13,7 @@ api = Api(
         )
 
 from .extensions import blp
+from .dom_elem import blp_dom_elem
 
 # Register our swagger models. Model definitions are stored
 # as a list of (Name, dict) tuples, where dicts are {field_name: type}

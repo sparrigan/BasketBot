@@ -30,8 +30,11 @@ def get_form():
         return render_template('scraping/create.html', form=form)
 
 
-def create():
-    form = ScrapingRuleForm() 
-    if form.validate_on_submit():
-        return "ok"
-    return render_template('scraping/create.html', form=form)
+# def create():
+#     form = ScrapingRuleForm() 
+#     if form.validate_on_submit():
+#         return "ok"
+#     return render_template(
+#             'scraping/create.html',
+#             form=form
+#             )

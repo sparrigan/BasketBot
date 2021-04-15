@@ -18,7 +18,7 @@
                 <h5>{{ form.short_title }}</h5>
             </div>
             <div class="card-body text-dark">
-                <form id="upload-form" method="POST" enctype="multipart/form-data" action="{{endpoint}}">
+                <form id="retail-site-upload-form" method="POST" enctype="multipart/form-data" action="{{endpoint}}">
                     <fieldset>
                         {% for field in form %}
                             {% if field.type in ['CSRFTokenField', 'HiddenField'] %}
@@ -86,8 +86,5 @@
         </div>
     </div>
 </div>
-</div>
-<div id="test-button">
-    Test button
 </div>
 {% endblock %}

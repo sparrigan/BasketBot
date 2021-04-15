@@ -55,6 +55,10 @@ class IDArgs(ma.Schema):
     """ Simple Schema for integer ID arguments """
     id = fields.Integer(validate=Range(min=1, max=None))
 
+class DOMName(ma.Schema):
+    js_name = fields.Str(required=False)
+    bs_name = fields.Str(required=False)
+
 class NodeElem(ma.Schema):
     dom_type = fields.Str(validate=lambda x: validate_dom_elem(x,js=True))
     classes = fields.List(fields.Str())

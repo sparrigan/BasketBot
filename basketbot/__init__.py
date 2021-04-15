@@ -8,7 +8,7 @@ from basketbot.datamodel import register_events
 from .marshalling import ma
 from basketbot.frontend import frontend
 from basketbot.api import api
-from basketbot.api import blp
+from basketbot.api import blp, blp_dom_elem
 
 if "XDG_CONFIG_HOME" in os.environ:
     HOME = os.getenv("XDG_CONFIG_HOME")
@@ -51,6 +51,7 @@ def create_app(config="basketbot.config.Testing"):
     # app.register_blueprint(frontend)
     app.register_blueprint(frontend)
     api.register_blueprint(blp)
+    api.register_blueprint(blp_dom_elem)
     # app.redis = Redis.from_url(app.config['REDIS_URL'])
     # app.my_queue_name_here = rq.Queue('my_queue_name', connection=app.redis)
 

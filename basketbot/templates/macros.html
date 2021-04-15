@@ -5,42 +5,51 @@
         <h5>{{ title }}</h5>
     </div>
     <div class="card-body text-dark">
+        <form id="upload-form" method="POST" enctype="multipart/form-data" action="{{endpoint}}">
+            <fieldset>
+                {% for field in form %}
+                    {% if field.type in ['CSRFTokenField', 'HiddenField'] %}
+                      {{ field() }}
+                    {% else %}
 
-    <form id="upload-form" method="POST" enctype="multipart/form-data" action="{{endpoint}}">
-        <fieldset>
-            {% for field in form %}
-                {% if field.type in ['CSRFTokenField', 'HiddenField'] %}
-                  {{ field() }}
-                {% else %}
-                    <div class=" form-group row clearfix {% if field.errors %}error{% endif %}" id="{{ "div-{}".format(field.short_name) }}">
-                        {{ field.label(class_='col-sm-2 col-form-label') }}
-                        <div class="col-sm-10">
-                            {{ field(class_='form-control') }}
-                        </div>
-                      </div>
-                {% endif %}
-                {% if field.errors or field.help_text %}
-                    <span class="help-inline">
-                        {% if field.errors %}
-                          {{ field.errors|join(' ') }}
+                        {% if field.type == 'BooleanField' %}
+                            <!-- <div class="form&#45;group row {% if field.errors %}error{% endif %} mb&#45;3" id="{{ "div&#45;{}".format(field.short_name) }}"> -->
+                                <div class="form-check">
+                                    {{ field.label(class_='form-check-label') }}
+                                    {{ field(class_='form-check-input') }}
+                                </div>
+                            <!-- </div> -->
                         {% else %}
-                          {{ field.help_text }}
+                            <div class="form-group row {% if field.errors %}error{% endif %} mb-3" id="{{ "div-{}".format(field.short_name) }}">
+                                    {{ field.label(class_='col-sm-2 col-form-label') }}
+                                <div class="col-sm-10">
+                                        {{ field(class_='form-control') }}
+                                </div>
+                            </div>
                         {% endif %}
-                    </span>
-                {% endif %}
-            {% endfor %}
-        </fieldset>
-    </div>
-    <div class="card-footer bg-transparent border-dark">
-        <div class="float-right">
-          <button type="submit" 
-              class="btn btn-dark" 
-              id="{{ "{}-upload-button".format(button_id) }}"
-              style="float: right;">
-              {{ submit_txt }}
-          </button>
+                    {% endif %}
+                    {% if field.errors or field.help_text %}
+                        <span class="help-inline">
+                            {% if field.errors %}
+                              {{ field.errors|join(' ') }}
+                            {% else %}
+                              {{ field.help_text }}
+                            {% endif %}
+                        </span>
+                    {% endif %}
+                {% endfor %}
+            </fieldset>
         </div>
-    </div>
-  </form>
+        <div class="card-footer bg-transparent border-dark">
+            <div class="float-right">
+              <button type="submit" 
+                  class="btn btn-dark" 
+                  id="{{ "{}-upload-button".format(button_id) }}"
+                  style="float: right;">
+                  {{ submit_txt }}
+              </button>
+            </div>
+        </div>
+      </form>
 </div>
 {% endmacro %}
