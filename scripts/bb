@@ -2,6 +2,7 @@
 # vim: set ft=python:
 
 import click
+import os
 from basketbot import create_app
 from basketbot.datamodel.defaults import create
 from shutil import which
@@ -44,17 +45,19 @@ def drop_all():
             database.db.drop_all(bind=None)
             click.echo("All tables dropped from {}".format(database.db))
 
-def get_er(outfname):
+def get_er(outfname, autoload=True):
     """ Generate ER diagram from DB """
     with app.app_context():
         dburi = app.config["SQLALCHEMY_DATABASE_URI"]
+        outfname = os.path.abspath(outfname)
         # Requires eralchemy
         subprocess.call(["eralchemy", "-i", dburi, "-o", outfname])
         # Try and open the generated file using feh on linux or open on osx
-        if which("feh"):
-            subprocess.call(["feh", outfname])
-        elif which("open"):
-            subprocess.call(["open", outfname])
+        if autoload:
+            if which("feh"):
+                subprocess.call(["feh", outfname])
+            elif which("open"):
+                subprocess.call(["open", outfname])
 
 @click.group()
 def db():
@@ -78,9 +81,10 @@ def db_drop():
 
 @click.command(name="er")
 @click.option("--fname", default="out.png", help="Optionally specify a filename to save er diagram to")
-def db_er(fname):
+@click.option("--autoload/--no-autoload", default=True, help="Whether to open generated ER image automatically after building")
+def db_er(fname, autoload):
     """ Creates an er diagram"""
-    get_er(fname)
+    get_er(fname, autoload)
 
 @click.group()
 @click.option(

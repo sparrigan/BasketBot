@@ -9,3 +9,4 @@ __pycache__
 *.orig
 *.swo
 out.png
+.DS_Store

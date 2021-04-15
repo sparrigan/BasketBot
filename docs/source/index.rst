@@ -18,6 +18,7 @@ See the :ref:`overview` the a more detailed outline of the project
    :caption: Contents:
 
     Overview <overview>
+    Architecture <architecture>
     Model <model>
 
 Indices and tables
