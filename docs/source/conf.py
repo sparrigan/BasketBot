@@ -10,10 +10,15 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+import glob
+sys.path.insert(0, os.path.abspath('../..'))
 
+if 'VIRTUAL_ENV' in os.environ:
+    site_packages_glob = os.sep.join([os.environ['VIRTUAL_ENV'], 'lib', 'python3.9', 'site-packages'])
+    site_packages = glob.glob(site_packages_glob)[-1]
+    sys.path.insert(0, site_packages)
 
 # -- Project information -----------------------------------------------------
 
@@ -28,7 +33,12 @@ author = 'Nic Harrigan, Martin Coath'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+        'sphinx.ext.autodoc',
+        'sphinx.ext.napoleon'
 ]
+
+# Don't alphabetically sort members in autodoc
+autodoc_member_order = 'bysource'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
